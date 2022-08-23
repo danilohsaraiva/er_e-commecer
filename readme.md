@@ -1,4 +1,4 @@
-# ERR E-commerce
+# ER E-commerce
 ## Contextualizando
 *O esquema apresenta a relação de venda/produto.* <br>
 
