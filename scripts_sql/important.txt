@@ -1,0 +1,10 @@
+Autor: Danilo Henrique Alves Saraiva 28/08/2022
+
+Ordem de execução dos scripts:
+
+	♦ e_commerce.sql ( Estrutura do banco de dados ) 
+	♦ population.sql (Necessário para o sistema )
+	♦ queries.sql ( Pesquisas feitas )
+
+Importante: 
+	Para um real aproveitamento, execute as TRIGGERS presentes em "population.sql" de maneira manual.
