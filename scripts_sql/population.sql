@@ -7,7 +7,7 @@ USE e_commerce;
 -- *********************************************************************
 -- *                             TRIGGERS                              *
 -- *********************************************************************
--- IMPORTANTE: EXECURAR OS TRIGGERS ANTES DE INSERIR OS DADOS NO BANCO.
+-- IMPORTANTE: EXECUTAR OS TRIGGERS ANTES DE INSERIR OS DADOS NO BANCO.
 -- AFIM DE VISUALIZAR POSTERIORES QUERIES COM O DESEMPENHO PROPOSTO.
 
 -- Definindo a tabela auxíliar a ser usada para controle de estoque
@@ -19,22 +19,21 @@ DELIMITER §
     FOR EACH ROW
     BEGIN
 		IF NEW.product_id = (SELECT product_id FROM control as c WHERE c.product_id = NEW.product_id) THEN
-        SET SQL_SAFE_UPDATES=0;
-        UPDATE control
-        SET qty = NEW.qty + qty WHERE control.product_id = NEW.product_id;
-        ELSE 
-        INSERT INTO control(product_id, qty, name, type, description, category, brand, supplier_cnpj, seller_cnpj, supplier_name, seller_name) VALUES 
-        (NEW.product_id, NEW.qty,
-        (SELECT name FROM product as p WHERE p.id= NEW.product_id),
-        (SELECT tp.description FROM type_product as tp INNER JOIN product as p ON tp.id = p.type_id WHERE p.id= NEW.product_id),
-        (SELECT p.description FROM product as p WHERE p.id= NEW.product_id),
-        (SELECT c.name FROM category as c INNER JOIN product as p ON p.category_id = c.id  WHERE p.id = NEW.product_id),
-        (SELECT b.name FROM brand as b INNER JOIN product as p ON b.id = p.brand_id WHERE p.id = NEW.product_id),
-        (SELECT s.cnpj FROM supplier as s INNER JOIN product as p ON p.supplier_id = s.id WHERE p.id = NEW.product_id),
-        (SELECT sl.cnpj FROM seller as sl INNER JOIN product as p ON p.sold_by_id = sl.id WHERE p.id = NEW.product_id),
-        (SELECT s.name FROM supplier as s INNER JOIN product as p ON p.supplier_id = s.id WHERE p.id = NEW.product_id),
-        (SELECT sl.name FROM seller as sl INNER JOIN product as p ON p.sold_by_id = sl.id WHERE p.id = NEW.product_id)
-        );
+			SET SQL_SAFE_UPDATES=0;
+			UPDATE control
+			SET qty = NEW.qty + qty WHERE control.product_id = NEW.product_id;
+		ELSE 
+			INSERT INTO control(product_id, qty, name, type, description, category, brand, supplier_cnpj, seller_cnpj, supplier_name, seller_name) VALUES 
+			(NEW.product_id, NEW.qty,
+			(SELECT name FROM product as p WHERE p.id= NEW.product_id),
+			(SELECT tp.description FROM type_product as tp INNER JOIN product as p ON tp.id = p.type_id WHERE p.id= NEW.product_id),
+			(SELECT p.description FROM product as p WHERE p.id= NEW.product_id),
+			(SELECT c.name FROM category as c INNER JOIN product as p ON p.category_id = c.id  WHERE p.id = NEW.product_id),
+			(SELECT b.name FROM brand as b INNER JOIN product as p ON b.id = p.brand_id WHERE p.id = NEW.product_id),
+			(SELECT s.cnpj FROM supplier as s INNER JOIN product as p ON p.supplier_id = s.id WHERE p.id = NEW.product_id),
+			(SELECT sl.cnpj FROM seller as sl INNER JOIN product as p ON p.sold_by_id = sl.id WHERE p.id = NEW.product_id),
+			(SELECT s.name FROM supplier as s INNER JOIN product as p ON p.supplier_id = s.id WHERE p.id = NEW.product_id),
+			(SELECT sl.name FROM seller as sl INNER JOIN product as p ON p.sold_by_id = sl.id WHERE p.id = NEW.product_id));
         END IF;
 	END §
 DELIMITER ;
@@ -58,7 +57,6 @@ DELIMITER ;
 
 -- *******************************************************************
 
-
 -- Definindo estoque após a compra
 
 DELIMITER §
@@ -73,7 +71,6 @@ DELIMITER §
         END IF;
 	END §
 DELIMITER ;
-
 
 -- *********************************************************************
 -- *                             POPULATION                            *
@@ -209,8 +206,6 @@ INSERT INTO storage_in (storage_id, product_id, qty) VALUES
 (3,10,5)
 ;
 
-SELECT* FROM status_purchase;
-
 INSERT INTO purchase (date,customer_id, value_to_send, address_id, status_purchase_id) VALUES
 ('2022-01-07',1,25.00,1,1),
 ('2022-02-04',2,25.00,2,2),
@@ -222,8 +217,6 @@ INSERT INTO purchase (date,customer_id, value_to_send, address_id, status_purcha
 ('2022-07-11',8,25.00,8,4),
 ('2022-08-19',9,25.00,9,1),
 ('2022-08-20',10,25.00,10,2);
-
-SELECT * FROM customer;
 
 INSERT INTO product_purchase (product_id, purchase_id, qty) VALUES 
 (1,9,1),
@@ -296,9 +289,6 @@ INSERT INTO payment (purchase_id, type_id, value, date) VALUES
 
 INSERT INTO status_purchase(type) VALUES('CONFIRMADA'),('AGUARDANDO PAGAMENTO'),('CANCELADA');
 INSERT INTO status_to_send(status) VALUES('AGUARDANDO ENVIO DO VENDEDOR'), ('ENVIADO'),('ENTREGUE'),('DEVOLUÇÃO/REENBOLSO');
-
-SELECT * FROM status_to_send;
-SELECT * FROM status_purchase;
 
 INSERT INTO order_number (responsible_id, payment_id) VALUES 
 (1,1);

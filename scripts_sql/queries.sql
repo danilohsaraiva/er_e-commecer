@@ -23,12 +23,12 @@ SELECT SUM(p.value*pc.qty) + pr.value_to_send as `Valor da Compra`, c.name as `N
                     
 -- Compras feitas por determinado cliente, com quantidade de itens comprados, item e o valor gasto total gasto por cada tipo de item comprado
 
-SELECT p.id as id, c.name as `Nome do Cliente`, pr.name as `Nome do Produto`, pp.qty as `Quantidade`, pr.value as `Valor Unitário`, (pr.value*pp.qty) as `Valor Total`, p.date as `Data da Compra` FROM purchase as p INNER JOIN product_purchase as pp
+SELECT p.id as `ID da Compra`, c.name as `Nome do Cliente`, pr.name as `Nome do Produto`, pp.qty as `Quantidade`, pr.value as `Valor Unitário`, (pr.value*pp.qty) as `Valor Total`, p.date as `Data da Compra` FROM purchase as p INNER JOIN product_purchase as pp
 	ON p.id = pp.purchase_id
 		INNER JOIN product as pr ON pr.id = pp.product_id
 			INNER JOIN customer as c ON p.customer_id = c.id
-				group by pp.id
-					order by p.date;
+				GROUP BY pp.id
+					ORDER BY p.date;
 
 -- Recolher informações a respeito dos atributos relacionados ao produto
 
@@ -56,38 +56,50 @@ SELECT pd.id as `ID - PRODUTO`, od.id `ID - ORDEM SERVIÇO`, pc.qty as `Quantida
 				INNER JOIN order_number as od ON od.payment_id = py.id
 						WHERE od.id = 9;
                         
- -- ********************************************************************
--- *                             PROCEDURE                             *
--- *********************************************************************
+-- ********************************************************************
+-- *                             FUNCTION                             *
+-- ********************************************************************
 
 DELIMITER §
-	CREATE FUNCTION peaple_type_function( id_cliente INT)
+	CREATE FUNCTION people_type_function( id_cliente INT)
     RETURNS VARCHAR (45) DETERMINISTIC
     BEGIN
 		DECLARE type_cliente VARCHAR(45);
-        DECLARE control INT;
 		SET @id_cliente = id_cliente;
-        SELECT c.pf_or_pj FROM customer as c WHERE c.id = @id_cliente INTO @control;
-        RETURN IF ((SELECT pf_or_pj FROM customer as c WHERE c.id = 1) = 0, "Pessoa Física", "Pessoa Juridica");
+        RETURN IF ((SELECT pf_or_pj FROM customer as c WHERE c.id = @id_cliente) = 0, "Pessoa Física", "Pessoa Juridica");
     END §
 DELIMITER ;
 
 
 -- produtos com determinado status, nome cliente e afins
--- PARA EXECURAR ESTA QUERY, EXECUTE A CRIAÇÃO DA PROCEDURE ACIMA.
+-- PARA EXECUTAR ESTA QUERY, EXECUTE A CRIAÇÃO DA PROCEDURE ACIMA.
 
-SELECT c.name as `Nome do Cliente`,tp.type as `Tipo de Cliente`, c.email as `E-mail`, (SELECT peaple_type_function(1)) as `Pessoa Física/Jurídica`,
-	ps.tracking as `Número de Rastreio`, pr.name as `Nome do Produto`, pr.description as `Descrição`, ss.status as `Status da Entrega`
-	FROM customer as c INNER JOIN purchase as p
-	on c.id = p.customer_id
-		INNER JOIN payment as py ON p.id = py.purchase_id
-			INNER JOIN order_number as o ON o.payment_id = py.id
-				INNER JOIN seller as s ON s.id = o.responsible_id
-					INNER JOIN product_to_send as ps ON ps.order_number_id = o.id
-						INNER JOIN status_to_send as ss ON ss.id = ps.status_id	
-							INNER JOIN product as pr ON pr.id = ps.product_id
-								INNER JOIN type_customer as tp ON tp.id = c.type_customer
-									WHERE p.id = 1
-										GROUP BY c.id;
+ -- ********************************************************************
+-- *                             PROCEDURE                             *
+-- *********************************************************************
+
+DELIMITER §
+	CREATE PROCEDURE info_customer_purchase_geral (id_cliente INT)
+    BEGIN
+    SET @id = id_cliente;
+		SELECT c.name as `Nome do Cliente`,tp.type as `Tipo de Cliente`, c.email as `E-mail`, (SELECT people_type_function(@id)) as `Pessoa Física/Jurídica`,
+		ps.tracking as `Número de Rastreio`, pr.name as `Nome do Produto`, pr.description as `Descrição`, ss.status as `Status da Entrega`
+			FROM customer as c INNER JOIN purchase as p
+				ON c.id = p.customer_id
+					INNER JOIN payment as py ON p.id = py.purchase_id
+						INNER JOIN order_number as o ON o.payment_id = py.id
+							INNER JOIN seller as s ON s.id = o.responsible_id
+								INNER JOIN product_to_send as ps ON ps.order_number_id = o.id
+									INNER JOIN status_to_send as ss ON ss.id = ps.status_id	
+										INNER JOIN product as pr ON pr.id = ps.product_id
+											INNER JOIN type_customer as tp ON tp.id = c.type_customer
+												WHERE p.id = @id
+													GROUP BY c.id;
+	END §	
+DELIMITER ;
+
+-- Deixei uma chamada da query acima para facilitar.
+CALL info_customer_purchase_geral (5);
+
 
 	
